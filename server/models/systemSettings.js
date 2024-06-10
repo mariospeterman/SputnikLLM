@@ -26,6 +26,8 @@ const SystemSettings = {
     "text_splitter_chunk_overlap",
     "agent_search_provider",
     "default_agent_skills",
+    "users_can_login_with_google",
+    "allowed_domain",
     "agent_sql_connections",
     "custom_app_name",
   ],
@@ -176,6 +178,15 @@ const SystemSettings = {
       AgentGoogleSearchEngineKey: process.env.AGENT_GSE_KEY || null,
       AgentSerperApiKey: process.env.AGENT_SERPER_DEV_KEY || null,
       AgentBingSearchApiKey: process.env.AGENT_BING_SEARCH_API_KEY || null,
+
+      // --------------------------------------------------------
+      // Social Providers
+      // --------------------------------------------------------
+      GoogleAuthClientId:
+        (await this.get({ label: "users_can_login_with_google" }))?.value ===
+        "true"
+          ? process.env.GOOGLE_AUTH_CLIENT_ID
+          : null,
     };
   },
 
