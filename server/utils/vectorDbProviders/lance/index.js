@@ -5,6 +5,7 @@ const { SystemSettings } = require("../../../models/systemSettings");
 const { storeVectorResult, cachedVectorInformation } = require("../../files");
 const { v4: uuidv4 } = require("uuid");
 const { sourceIdentifier } = require("../../chats");
+const logger = require("../../logger");
 
 const LanceDb = {
   uri: `${
@@ -78,8 +79,9 @@ const LanceDb = {
         return;
       const { vector: _, ...rest } = item;
       if (filterIdentifiers.includes(sourceIdentifier(rest))) {
-        console.log(
-          "LanceDB: A source was filtered from context as it's parent document is pinned."
+        logger.info(
+          "A source was filtered from context as it's parent document is pinned.",
+          { origin: "LanceDb" }
         );
         return;
       }
@@ -134,8 +136,9 @@ const LanceDb = {
     const { client } = await this.connect();
     const exists = await this.namespaceExists(client, namespace);
     if (!exists) {
-      console.error(
-        `LanceDB:deleteDocumentFromNamespace - namespace ${namespace} does not exist.`
+      logger.error(
+        `deleteDocumentFromNamespace - namespace ${namespace} does not exist.`,
+        { origin: "LanceDb" }
       );
       return;
     }
@@ -161,7 +164,12 @@ const LanceDb = {
       const { pageContent, docId, ...metadata } = documentData;
       if (!pageContent || pageContent.length == 0) return false;
 
-      console.log("Adding new vectorized document into namespace", namespace);
+      logger.info(
+        `Adding new vectorized document into namespace: ${namespace}`,
+        {
+          origin: "LanceDb",
+        }
+      );
       if (!skipCache) {
         const cacheResult = await cachedVectorInformation(fullFilePath);
         if (cacheResult.exists) {
@@ -208,7 +216,9 @@ const LanceDb = {
       });
       const textChunks = await textSplitter.splitText(pageContent);
 
-      console.log("Chunks created from document:", textChunks.length);
+      logger.info(`Chunks created from document: ${textChunks.length}`, {
+        origin: "LanceDb",
+      });
       const documentVectors = [];
       const vectors = [];
       const submissions = [];
@@ -243,7 +253,9 @@ const LanceDb = {
         const chunks = [];
         for (const chunk of toChunks(vectors, 500)) chunks.push(chunk);
 
-        console.log("Inserting vectorized chunks into LanceDB collection.");
+        logger.info("Inserting vectorized chunks into LanceDB collection.", {
+          origin: "LanceDb",
+        });
         const { client } = await this.connect();
         await this.updateOrCreateCollection(client, submissions, namespace);
         await storeVectorResult(chunks, fullFilePath);
@@ -252,7 +264,9 @@ const LanceDb = {
       await DocumentVectors.bulkInsert(documentVectors);
       return { vectorized: true, error: null };
     } catch (e) {
-      console.error("addDocumentToNamespace", e.message);
+      logger.error(`addDocumentToNamespace:: ${e.message}`, {
+        origin: "LanceDb",
+      });
       return { vectorized: false, error: e.message };
     }
   },
