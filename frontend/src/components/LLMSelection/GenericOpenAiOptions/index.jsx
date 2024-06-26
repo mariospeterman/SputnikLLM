@@ -1,10 +1,19 @@
+import { useEffect, useState } from "react";
+import System from "@/models/system";
+
 export default function GenericOpenAiOptions({ settings }) {
+  const [basePathValue, setBasePathValue] = useState(
+    settings?.GenericOpenAiBasePath
+  );
+
+  const [basePath, setBasePath] = useState(settings?.GenericOpenAiBasePath);
+
   return (
     <div className="flex flex-col gap-y-4">
       <div className="flex gap-4 flex-wrap">
         <div className="flex flex-col w-60">
           <label className="text-white text-sm font-semibold block mb-4">
-            Base URL
+            Generic OpenAi Base URL
           </label>
           <input
             type="url"
@@ -15,6 +24,8 @@ export default function GenericOpenAiOptions({ settings }) {
             required={true}
             autoComplete="off"
             spellCheck={false}
+            onChange={(e) => setBasePathValue(e.target.value)}
+            onBlur={() => setBasePath(basePathValue)}
           />
         </div>
         <div className="flex flex-col w-60">
